@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load drive_extras %}
+{% block title %}Trash{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>Trash</h1>
+  {% if folders or files %}
+  <form method="post" action="{% url 'drive:empty_trash' %}" onsubmit="return confirm('Permanently delete everything in Trash?');">{% csrf_token %}
+    <button class="btn danger">Empty Trash</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if folders or files %}
+<table class="list">
+  <thead><tr><th>Name</th><th>Size</th><th></th></tr></thead>
+  <tbody>
+  {% for d in folders %}
+    <tr>
+      <td><span class="name folder">{{ d.name }}</span></td>
+      <td class="muted">-</td>
+      <td class="row-actions">
+        <form method="post" action="{% url 'drive:restore' 'folder' d.id %}">{% csrf_token %}<button class="link">Restore</button></form>
+        <form method="post" action="{% url 'drive:delete_forever' 'folder' d.id %}" onsubmit="return confirm('Delete this folder and its contents permanently?');">{% csrf_token %}<button class="link danger">Delete forever</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  {% for f in files %}
+    <tr>
+      <td><span class="name">{{ f.name }}</span></td>
+      <td class="muted">{{ f.size|filesize }}</td>
+      <td class="row-actions">
+        <form method="post" action="{% url 'drive:restore' 'file' f.id %}">{% csrf_token %}<button class="link">Restore</button></form>
+        <form method="post" action="{% url 'drive:delete_forever' 'file' f.id %}" onsubmit="return confirm('Delete this file permanently?');">{% csrf_token %}<button class="link danger">Delete forever</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">Items in Trash still count toward your storage until you delete them forever.</p>
+{% else %}
+<div class="empty"><h2>Trash is empty</h2><p class="muted">Deleted files and folders appear here.</p></div>
+{% endif %}
+{% endblock %}

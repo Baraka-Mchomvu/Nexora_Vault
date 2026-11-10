@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block plain %}
+<section class="card narrow">
+  <h1>Log in</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn primary">Log in</button>
+  </form>
+  {% if allow_signup %}<p class="muted">New to Nexora Drive? <a href="{% url 'drive:signup' %}">Create an account</a></p>{% endif %}
+</section>
+{% endblock %}

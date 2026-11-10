@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load drive_extras %}
+{% block title %}{% if folder %}{{ folder.name }}{% else %}My Drive{% endif %}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <nav class="crumbs">
+    <a href="{% url 'drive:home' %}">My Drive</a>
+    {% for c in crumbs %}<span>/</span><a href="{% url 'drive:folder' c.id %}">{{ c.name }}</a>{% endfor %}
+  </nav>
+  <form method="get" action="{% url 'drive:home' %}" class="inline">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search by file or folder name">
+    <button class="btn">Search</button>
+  </form>
+</div>
+
+{% if q %}
+  <p class="muted">Results for “{{ q }}”. <a href="{% url 'drive:home' %}">Clear search</a></p>
+{% else %}
+<div class="actions">
+  <form method="post" action="{% url 'drive:create_folder' %}" class="inline">{% csrf_token %}
+    <input type="hidden" name="parent" value="{{ folder.id|default:'' }}">
+    <input name="name" placeholder="Folder name" required>
+    <button class="btn">New folder</button>
+  </form>
+  <form method="post" action="{% url 'drive:upload' %}" enctype="multipart/form-data" class="inline">{% csrf_token %}
+    <input type="hidden" name="folder" value="{{ folder.id|default:'' }}">
+    <input type="file" name="files" multiple required>
+    <button class="btn primary">Upload files</button>
+  </form>
+</div>
+{% endif %}
+
+{% if folders or files %}
+<table class="list">
+  <thead><tr><th>Name</th><th>Size</th><th>Added</th><th></th></tr></thead>
+  <tbody>
+  {% for d in folders %}
+    <tr>
+      <td><a class="name folder" href="{% url 'drive:folder' d.id %}">{{ d.name }}</a></td>
+      <td class="muted">-</td>
+      <td class="muted">{{ d.created_at|date:"d M Y" }}</td>
+      <td class="row-actions">
+        <details class="menu"><summary>Rename</summary>
+          <form method="post" action="{% url 'drive:rename_folder' d.id %}" class="inline">{% csrf_token %}
+            <input name="name" value="{{ d.name }}" required><button class="btn">Save</button>
+          </form>
+        </details>
+        <form method="post" action="{% url 'drive:trash_folder' d.id %}">{% csrf_token %}<button class="link danger">Trash</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  {% for f in files %}
+    <tr>
+      <td><span class="name">{{ f.name }}</span>{% if f.share_token %} <span class="tag">Shared</span>{% endif %}</td>
+      <td class="muted">{{ f.size|filesize }}</td>
+      <td class="muted">{{ f.created_at|date:"d M Y" }}</td>
+      <td class="row-actions">
+        <a href="{% url 'drive:download' f.id %}">Download</a>
+        <form method="post" action="{% url 'drive:toggle_share' f.id %}">{% csrf_token %}
+          <button class="link">{% if f.share_token %}Stop sharing{% else %}Share{% endif %}</button>
+        </form>
+        {% if f.share_token %}
+        <button type="button" class="link" data-copy="{{ request.scheme }}://{{ request.get_host }}{% url 'drive:shared' f.share_token %}">Copy link</button>
+        {% endif %}
+        <details class="menu"><summary>Rename</summary>
+          <form method="post" action="{% url 'drive:rename_file' f.id %}" class="inline">{% csrf_token %}
+            <input name="name" value="{{ f.name }}" required><button class="btn">Save</button>
+          </form>
+        </details>
+        <form method="post" action="{% url 'drive:trash_file' f.id %}">{% csrf_token %}<button class="link danger">Trash</button></form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  <h2>{% if q %}No matches{% else %}This folder is empty{% endif %}</h2>
+  <p class="muted">{% if q %}Try a different name.{% else %}Upload files or create a folder to get started.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load static %}{% load drive_extras %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nexora Drive{% endblock %} · Nexora Drive</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="shell">
+  <aside class="side">
+    <a class="brand" href="{% url 'drive:home' %}">Nexora Drive</a>
+    <nav class="nav">
+      <a href="{% url 'drive:home' %}">My Drive</a>
+      <a href="{% url 'drive:trash' %}">Trash</a>
+    </nav>
+    <div class="meter">
+      <div class="bar"><span style="width: {{ storage_percent }}%"></span></div>
+      <p>{{ storage_used|filesize }} of {{ storage_quota|filesize }} used</p>
+    </div>
+    <div class="who">
+      <span>{{ user.username }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="link">Log out</button></form>
+    </div>
+  </aside>
+  <main class="main">
+    {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+<main class="plain">
+  <a class="brand" href="{% url 'drive:home' %}">Nexora Drive</a>
+  {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+  {% block plain %}{% endblock %}
+</main>
+{% endif %}
+<script>
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-copy]');
+  if (!b) return;
+  navigator.clipboard.writeText(b.dataset.copy).then(function () {
+    var old = b.textContent; b.textContent = 'Copied';
+    setTimeout(function () { b.textContent = old; }, 1500);
+  });
+});
+</script>
+</body>
+</html>

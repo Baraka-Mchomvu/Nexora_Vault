@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load drive_extras %}
+{% block title %}{{ file.name }}{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ file.name }}</h1>
+  <p class="muted">{{ file.size|filesize }}, shared through Nexora Drive</p>
+  <a class="btn primary" href="?download=1">Download file</a>
+</section>
+{% endblock %}
+{% block plain %}
+<section class="card narrow">
+  <h1>{{ file.name }}</h1>
+  <p class="muted">{{ file.size|filesize }}, shared through Nexora Drive</p>
+  <a class="btn primary" href="?download=1">Download file</a>
+</section>
+{% endblock %}
